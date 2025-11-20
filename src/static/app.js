@@ -506,10 +506,10 @@ document.addEventListener("DOMContentLoaded", () => {
     return `
       <div class="share-buttons">
         <button class="share-button twitter" data-share-url="${twitterUrl}" title="Share on Twitter" aria-label="Share on Twitter">
-          𝕏
+          X
         </button>
         <button class="share-button facebook" data-share-url="${facebookUrl}" title="Share on Facebook" aria-label="Share on Facebook">
-          f
+          FB
         </button>
         <button class="share-button linkedin" data-share-url="${linkedinUrl}" title="Share on LinkedIn" aria-label="Share on LinkedIn">
           in
@@ -534,27 +534,58 @@ document.addEventListener("DOMContentLoaded", () => {
     // Handle copy to clipboard
     if (button.classList.contains('copy')) {
       const url = button.dataset.copyUrl;
-      navigator.clipboard.writeText(url).then(() => {
-        // Visual feedback
-        const originalContent = button.textContent;
-        button.textContent = '✓';
-        button.classList.add('copied');
+      
+      // Try using Clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+          // Visual feedback
+          const originalContent = button.textContent;
+          button.textContent = '✓';
+          button.classList.add('copied');
+          
+          setTimeout(() => {
+            button.textContent = originalContent;
+            button.classList.remove('copied');
+          }, 2000);
+          
+          showMessage('Link copied to clipboard!', 'success');
+        }).catch(err => {
+          console.error('Failed to copy:', err);
+          showMessage('Failed to copy link', 'error');
+        });
+      } else {
+        // Fallback for browsers that don't support Clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
         
-        setTimeout(() => {
-          button.textContent = originalContent;
-          button.classList.remove('copied');
-        }, 2000);
-        
-        showMessage('Link copied to clipboard!', 'success');
-      }).catch(err => {
-        console.error('Failed to copy:', err);
-        showMessage('Failed to copy link', 'error');
-      });
+        try {
+          document.execCommand('copy');
+          const originalContent = button.textContent;
+          button.textContent = '✓';
+          button.classList.add('copied');
+          
+          setTimeout(() => {
+            button.textContent = originalContent;
+            button.classList.remove('copied');
+          }, 2000);
+          
+          showMessage('Link copied to clipboard!', 'success');
+        } catch (err) {
+          console.error('Fallback copy failed:', err);
+          showMessage('Failed to copy link', 'error');
+        } finally {
+          document.body.removeChild(textArea);
+        }
+      }
     } else {
       // Handle social media sharing
       const shareUrl = button.dataset.shareUrl;
       if (shareUrl) {
-        window.open(shareUrl, '_blank', 'width=600,height=400');
+        window.open(shareUrl, '_blank', 'width=600,height=400,noopener,noreferrer');
       }
     }
   }

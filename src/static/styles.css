@@ -686,7 +686,8 @@ footer {
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 14px;
+  font-size: 11px;
+  font-weight: bold;
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
